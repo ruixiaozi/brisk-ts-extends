@@ -38,51 +38,57 @@ function dfsReadFile(dir: string) {
     if(stat.isFile() && file.endsWith('.ts')){
       const res = fs.readFileSync(filePath, {encoding:'utf-8'});
 
-      const onlyInterfaceGroup = /interface\s*(?<interfaceName>[A-Z\_]\w*)\s*\{/g.exec(res)?.groups;
+     // const onlyInterfaceGroup = /interface\s*(?<interfaceName>[A-Z\_]\w*)\s*\{/g.exec(res)?.groups;
 
-      const hasExtendsGroup = /interface\s*(?<interfaceName>[A-Z\_]\w*)\s*extends\s*.*\{/g.exec(res)?.groups;
+      const interfaceMatchAll = res.matchAll(/interface\s*(?<interfaceName>[A-Z\_]\w*)\s*(extends\s*.*)*\{(?<content>[\S\s]*?)\}/g);
 
-      const interfaceName = onlyInterfaceGroup?.interfaceName || hasExtendsGroup?.interfaceName;
+      for(let interfaceMatch of interfaceMatchAll){
+        const interfaceName = interfaceMatch.groups?.interfaceName;
+        const content = interfaceMatch.groups?.content;
 
-      if(interfaceName) {
-        typeObj[interfaceName] = {};
-        const mathRes =res.matchAll( /(?<key>[a-zA-Z\_]+\w*)\s*(?<canUndefined>\?*)\s*\:\s*(?<typeName>(?:\w+\s*\|*\s*)*)\s*\;/g);
-        for(let match of mathRes){
-          const key = match.groups?.key;
-          const typeName = match.groups?.typeName;
-          const canUndefined = match.groups?.canUndefined === '?';
-          if(key && typeName){
-            const typeList = typeName.split("|").map(item=> {
-              let itemRe = item.trim();
+        if(interfaceName) {
+          typeObj[interfaceName] = {};
+          const mathRes =content?.matchAll( /(?<key>[a-zA-Z\_]+\w*)\s*(?<canUndefined>\?*)\s*\:\s*(?<typeName>(?:\w+\s*\|*\s*)*)\s*\;/g);
+          if(!mathRes) {
+            continue;
+          }
+          for(let match of mathRes){
+            const key = match.groups?.key;
+            const typeName = match.groups?.typeName;
+            const canUndefined = match.groups?.canUndefined === '?';
+            if(key && typeName){
+              const typeList = typeName.split("|").map(item=> {
+                let itemRe = item.trim();
 
-              let itemReLower = itemRe.toLowerCase();
+                let itemReLower = itemRe.toLowerCase();
 
-              if(itemReLower === 'string' || itemReLower === 'number' || itemReLower === 'boolean' || itemReLower === 'undefined') {
-                return itemReLower;
-              }
+                if(itemReLower === 'string' || itemReLower === 'number' || itemReLower === 'boolean' || itemReLower === 'undefined') {
+                  return itemReLower;
+                }
 
-              if(/^[\'\"].*[\'\"]$/.test(itemRe)){
-                return 'string';
-              }
+                if(/^[\'\"].*[\'\"]$/.test(itemRe)){
+                  return 'string';
+                }
 
-              if(/^\d+$/.test(itemRe)){
-                return 'number';
-              }
+                if(/^\d+$/.test(itemRe)){
+                  return 'number';
+                }
 
-              if(/^(true|false)$/.test(itemRe)){
-                return 'boolean';
-              }
+                if(/^(true|false)$/.test(itemRe)){
+                  return 'boolean';
+                }
 
-              return 'object'
+                return 'object'
 
 
-            });
-            canUndefined && typeList.push('undefined');
+              });
+              canUndefined && typeList.push('undefined');
 
-            typeObj[interfaceName][key] = [
-              ...new Set(typeList)
-            ];
+              typeObj[interfaceName][key] = [
+                ...new Set(typeList)
+              ];
 
+            }
           }
         }
       }
