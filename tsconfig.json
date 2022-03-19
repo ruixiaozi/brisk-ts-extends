@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2021", // require node >= 12
     "module": "CommonJS",
-    "declaration": false,
+    "declaration": true,
     "outDir": "bin",
     "strict": true,
     "esModuleInterop": true,
