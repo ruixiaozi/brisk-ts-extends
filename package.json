@@ -1,0 +1,30 @@
+{
+  "name": "brisk-ts-extends",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "ts-extends-is": "./bin/is/bin.js"
+  },
+  "scripts": {
+    "test": "ts-node src/is/bin.ts",
+    "compile": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruixiaozi/brisk-ts-extends.git"
+  },
+  "keywords": [
+    "typescript",
+    "extends",
+    "brisk"
+  ],
+  "author": "ruixiaozi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ruixiaozi/brisk-ts-extends/issues"
+  },
+  "homepage": "https://github.com/ruixiaozi/brisk-ts-extends#readme",
+  "devDependencies": {
+    "@types/node": "17.0.21"
+  }
+}
