@@ -6,7 +6,7 @@ import * as path from 'path';
 
 const __root = process.cwd();
 
-console.log('hello');
+//console.log('hello');
 
 const paramSource = process.argv?.find((arg: string) => arg?.startsWith('--source'))?.split('=')?.pop();
 if(!paramSource){
@@ -52,11 +52,11 @@ function dfsReadFile(dir: string) {
 
         if(interfaceName) {
           typeObj[interfaceName] = {};
-          //console.log(content?.replaceAll(/\s*/g,'').replaceAll(/\/\*(\s|.)*?\*\//g,'').replaceAll(/(?<!:)\/\/.*/g,''));
-          const mathRes =content?.replaceAll(/\s*/g,'')
-            .replaceAll(/\/\*(\s|.)*?\*\//g,'')
+          //console.log(content?.replaceAll(/\/\*(\s|.)*?\*\//g,'').replaceAll(/(?<!:)\/\/.*/g,'').replaceAll(/\s*/g,''));
+          const mathRes =content?.replaceAll(/\/\*(\s|.)*?\*\//g,'')
             .replaceAll(/(?<!:)\/\/.*/g,'')
-            .matchAll( /(?<key>[a-zA-Z\_]+\w*)(?<canUndefined>\?*)\:(?<typeName>(?:\w+\|*)+)\;/g);
+            .replaceAll(/\s*/g,'')
+            .matchAll( /(?<key>[a-zA-Z\_]+\w*)(?<canUndefined>\?*)\:(?<typeName>(?:[^;\|]+\|*)+)\;/g);
           if(!mathRes) {
             continue;
           }
