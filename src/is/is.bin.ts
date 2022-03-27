@@ -6,6 +6,7 @@ import * as path from 'path';
 
 const __root = process.cwd();
 
+console.log('hello');
 
 const paramSource = process.argv?.find((arg: string) => arg?.startsWith('--source'))?.split('=')?.pop();
 if(!paramSource){
@@ -36,23 +37,32 @@ function dfsReadFile(dir: string) {
     const stat = fs.statSync(filePath);
 
     if(stat.isFile() && file.endsWith('.ts')){
+
       const res = fs.readFileSync(filePath, {encoding:'utf-8'});
 
      // const onlyInterfaceGroup = /interface\s*(?<interfaceName>[A-Z\_]\w*)\s*\{/g.exec(res)?.groups;
 
       const interfaceMatchAll = res.matchAll(/interface\s*(?<interfaceName>[A-Z\_]\w*)\s*(extends\s*.*)*\{(?<content>[\S\s]*?)\}/g);
-
-      for(let interfaceMatch of interfaceMatchAll){
+      //console.log(JSON.stringify(,null,2));
+      for(let interfaceMatch of [...interfaceMatchAll]){
         const interfaceName = interfaceMatch.groups?.interfaceName;
         const content = interfaceMatch.groups?.content;
 
+        //console.log(interfaceName);
+
         if(interfaceName) {
           typeObj[interfaceName] = {};
-          const mathRes =content?.matchAll( /(?<key>[a-zA-Z\_]+\w*)\s*(?<canUndefined>\?*)\s*\:\s*(?<typeName>(?:\w+\s*\|*\s*)*)\s*\;/g);
+          //console.log(content?.replaceAll(/\s*/g,'').replaceAll(/\/\*(\s|.)*?\*\//g,'').replaceAll(/(?<!:)\/\/.*/g,''));
+          const mathRes =content?.replaceAll(/\s*/g,'')
+            .replaceAll(/\/\*(\s|.)*?\*\//g,'')
+            .replaceAll(/(?<!:)\/\/.*/g,'')
+            .matchAll( /(?<key>[a-zA-Z\_]+\w*)(?<canUndefined>\?*)\:(?<typeName>(?:\w+\|*)+)\;/g);
           if(!mathRes) {
             continue;
           }
-          for(let match of mathRes){
+          //console.log(JSON.stringify(,null,2));
+          for(let match of [...mathRes]){
+
             const key = match.groups?.key;
             const typeName = match.groups?.typeName;
             const canUndefined = match.groups?.canUndefined === '?';

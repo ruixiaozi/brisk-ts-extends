@@ -1,6 +1,6 @@
 {
   "name": "brisk-ts-extends",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "bin": {
     "ts-extends-is": "./bin/is.bin.js"
