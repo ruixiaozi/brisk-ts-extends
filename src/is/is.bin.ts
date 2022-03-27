@@ -78,7 +78,7 @@ function dfsReadFile(dir: string) {
                   return 'boolean';
                 }
 
-                return 'object'
+                return 'any'
 
 
               });

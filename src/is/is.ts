@@ -34,7 +34,12 @@ export function is<T>(target: any, typeName: string): target is T {
       if (typeof typeStr !== 'string') {
         throw new Error('brisk-ts-extends: [is] module config is error');
       }
-      isRight ||= typeof target[key] === typeStr;
+      if(typeStr === 'any'){
+        isRight ||= true;
+      } else {
+        isRight ||= typeof target[key] === typeStr;
+      }
+
     }
     if (!isRight) {
       return false;

@@ -55,7 +55,12 @@ function is(target, typeName) {
             if (typeof typeStr !== 'string') {
                 throw new Error('brisk-ts-extends: [is] module config is error');
             }
-            isRight ||= typeof target[key] === typeStr;
+            if (typeStr === 'any') {
+                isRight ||= true;
+            }
+            else {
+                isRight ||= typeof target[key] === typeStr;
+            }
         }
         if (!isRight) {
             return false;
