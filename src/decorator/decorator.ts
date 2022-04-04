@@ -13,11 +13,11 @@ import {
 
 /**
  * DecoratorFactory
- * @description 装饰器工厂类
+ * @description 装饰器工厂
  * @author ruixiaozi
  * @email admin@ruixiaozi.com
- * @date 2022年01月26日 00:47:06
- * @version 2.0.0
+ * @date 2022年04月04日 17:14:04
+ * @version 1.1.0
  */
 export class DecoratorFactory {
 
