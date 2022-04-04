@@ -5,9 +5,11 @@
   "bin": {
     "ts-extends-is": "./bin/is.bin.js"
   },
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "ts-node src/is/bin.ts",
-    "precompile": "rimraf ./bin ./is ./decorator ./types",
+    "precompile": "rimraf ./bin ./is ./decorator ./types ./index.js ./index.d.ts",
     "compile": "tsc-multi",
     "prepare": "husky install",
     "upversion": "npm version patch"

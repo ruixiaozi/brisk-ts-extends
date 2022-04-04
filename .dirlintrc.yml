@@ -37,4 +37,6 @@ exceptions:
   - /decorator
   - /is
   - /types
+  - /index.js
+  - /index.d.ts
 

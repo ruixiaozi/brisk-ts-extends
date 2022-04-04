@@ -5,6 +5,8 @@ bin
 /decorator
 /is
 /types
+/index.js
+/index.d.ts
 
 # local env files
 .env.local
