@@ -24,6 +24,7 @@ exceptions:
   - /.eslintrc.js
   - /.git
   - /.gitignore
+  - /.npmignore
   - /.lintstagedrc.json
   - /LICENSE
   - /package-lock.json
@@ -37,4 +38,6 @@ exceptions:
   - /decorator
   - /is
   - /types
+  - /index.js
+  - /index.d.ts
 
