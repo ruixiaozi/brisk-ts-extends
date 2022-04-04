@@ -24,6 +24,7 @@ exceptions:
   - /.eslintrc.js
   - /.git
   - /.gitignore
+  - /.npmignore
   - /.lintstagedrc.json
   - /LICENSE
   - /package-lock.json
