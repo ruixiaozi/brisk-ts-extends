@@ -4,6 +4,6 @@
   ],
   "projects": [
     "tsconfig.json",
-    "tsconfig.bin.json"
+    "tsconfig.lib.json"
   ]
 }
