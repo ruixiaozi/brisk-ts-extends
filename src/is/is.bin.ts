@@ -1,20 +1,19 @@
 #!/usr/bin/env node
 
-
 import * as fs from 'fs';
 import * as path from 'path';
 
 const __root = process.cwd();
 
-//console.log('hello');
-
-const paramSource = process.argv?.find((arg: string) => arg?.startsWith('--source'))?.split('=')?.pop();
-if(!paramSource){
+const paramSource = process.argv?.find((arg: string) => arg?.startsWith('--source'))?.split('=')
+  ?.pop();
+if (!paramSource) {
   throw new Error('no --source');
 }
 
-const paramOutput = process.argv?.find((arg: string) => arg?.startsWith('--output'))?.split('=')?.pop();
-if(!paramOutput){
+const paramOutput = process.argv?.find((arg: string) => arg?.startsWith('--output'))?.split('=')
+  ?.pop();
+if (!paramOutput) {
   throw new Error('no --output');
 }
 
@@ -25,90 +24,77 @@ const output = path.join(__root, paramOutput);
 
 let typeObj: any = {
 
+};
+
+function toTypes(match: RegExpMatchArray, interfaceName: string) {
+  const key = match.groups?.key;
+  const typeName = match.groups?.typeName;
+  const canUndefined = match.groups?.canUndefined === '?';
+  if (key && typeName) {
+    const typeList = typeName.split('|').map((item) => {
+      let itemRe = item.trim();
+
+      let itemReLower = itemRe.toLowerCase();
+
+      if (itemReLower === 'string' || itemReLower === 'number' || itemReLower === 'boolean' || itemReLower === 'undefined') {
+        return itemReLower;
+      }
+
+      if (/^['"].*['"]$/u.test(itemRe)) {
+        return 'string';
+      }
+
+      if (/^\d+$/u.test(itemRe)) {
+        return 'number';
+      }
+
+      if (/^(?:true|false)$/u.test(itemRe)) {
+        return 'boolean';
+      }
+
+      return 'any';
+    });
+    canUndefined && typeList.push('undefined');
+
+    typeObj[interfaceName][key] = [...new Set(typeList)];
+  }
 }
 
 function dfsReadFile(dir: string) {
   const files = fs.readdirSync(dir);
 
 
-
-  files.forEach(file=>{
-    const filePath = path.join(dir,file );
+  files.forEach((file) => {
+    const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
 
-    if(stat.isFile() && file.endsWith('.ts')){
+    if (stat.isFile() && file.endsWith('.ts')) {
+      const res = fs.readFileSync(filePath, { encoding: 'utf-8' });
+      const interfaceRegexp = /interface\s*(?<interfaceName>[A-Z_]\w*)\s*(?:extends\s*.*)*\{(?<content>[\S\s]*?)\}/ug;
+      const interfaceMatchAll = res.matchAll(interfaceRegexp);
 
-      const res = fs.readFileSync(filePath, {encoding:'utf-8'});
-
-     // const onlyInterfaceGroup = /interface\s*(?<interfaceName>[A-Z\_]\w*)\s*\{/g.exec(res)?.groups;
-
-      const interfaceMatchAll = res.matchAll(/interface\s*(?<interfaceName>[A-Z\_]\w*)\s*(extends\s*.*)*\{(?<content>[\S\s]*?)\}/g);
-      //console.log(JSON.stringify(,null,2));
-      for(let interfaceMatch of [...interfaceMatchAll]){
+      for (let interfaceMatch of [...interfaceMatchAll]) {
         const interfaceName = interfaceMatch.groups?.interfaceName;
         const content = interfaceMatch.groups?.content;
 
-        //console.log(interfaceName);
-
-        if(interfaceName) {
+        if (interfaceName) {
           typeObj[interfaceName] = {};
-          //console.log(content?.replaceAll(/\/\*(\s|.)*?\*\//g,'').replaceAll(/(?<!:)\/\/.*/g,'').replaceAll(/\s*/g,''));
-          const mathRes =content?.replaceAll(/\/\*(\s|.)*?\*\//g,'')
-            .replaceAll(/(?<!:)\/\/.*/g,'')
-            .replaceAll(/\s*/g,'')
-            .matchAll( /(?<key>[a-zA-Z\_]+\w*)(?<canUndefined>\?*)\:(?<typeName>(?:[^;\|]+\|*)+)\;/g);
-          if(!mathRes) {
+          const mathRes = content?.replaceAll(/\/\*(?:\s|.)*?\*\//ug, '')
+            .replaceAll(/(?<!:)\/\/.*/ug, '')
+            .replaceAll(/\s*/ug, '')
+            .matchAll(/(?<key>[a-zA-Z_]+\w*)(?<canUndefined>\?*):(?<typeName>(?:[^;|]+\|*)+);/ug);
+          if (!mathRes) {
             continue;
           }
-          //console.log(JSON.stringify(,null,2));
-          for(let match of [...mathRes]){
-
-            const key = match.groups?.key;
-            const typeName = match.groups?.typeName;
-            const canUndefined = match.groups?.canUndefined === '?';
-            if(key && typeName){
-              const typeList = typeName.split("|").map(item=> {
-                let itemRe = item.trim();
-
-                let itemReLower = itemRe.toLowerCase();
-
-                if(itemReLower === 'string' || itemReLower === 'number' || itemReLower === 'boolean' || itemReLower === 'undefined') {
-                  return itemReLower;
-                }
-
-                if(/^[\'\"].*[\'\"]$/.test(itemRe)){
-                  return 'string';
-                }
-
-                if(/^\d+$/.test(itemRe)){
-                  return 'number';
-                }
-
-                if(/^(true|false)$/.test(itemRe)){
-                  return 'boolean';
-                }
-
-                return 'any'
-
-
-              });
-              canUndefined && typeList.push('undefined');
-
-              typeObj[interfaceName][key] = [
-                ...new Set(typeList)
-              ];
-
-            }
+          for (let match of [...mathRes]) {
+            toTypes(match, interfaceName);
           }
         }
       }
-
-    } else if(stat.isDirectory()){
+    } else if (stat.isDirectory()) {
       dfsReadFile(filePath);
     }
-  })
-
-
+  });
 }
 
 dfsReadFile(srcdir);
