@@ -21,6 +21,8 @@ import {
  */
 export class DecoratorFactory {
 
+  #paramsCache = new Map<object, Map<Key, Array<string>>>();
+
   constructor(
     private _classCallback?: ClassCallbackFunc,
     private _propertyCallback?: PropertyCallbackFunc,
@@ -69,7 +71,8 @@ export class DecoratorFactory {
         const oTarget = target as any;
         if (typeof descriptorOrIndex === 'number') {
           // 第三个参数为数字，参数装饰器
-          this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex);
+          const paramName = this.getParamName(oTarget, key, descriptorOrIndex);
+          this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex, paramName);
           return;
         }
 
@@ -77,6 +80,36 @@ export class DecoratorFactory {
         this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex);
       }
     };
+  }
+
+  /**
+   * 获取参数名称
+   * @param target 目标类的原型
+   * @param key 方法名称
+   * @param index 参数序号
+   * @returns
+   */
+  private getParamName(target: any, key: Key, index: number): string {
+    let params = this.#paramsCache.get(target)?.get(key);
+    if (!params) {
+      const fnc: Function = target[key];
+      params = fnc
+        ?.toString()
+        ?.match(/^.*?\((?<params>[^)]*)\)/u)
+        ?.groups
+        ?.params
+        ?.split(',')?.map((item) => item.trim()) || [];
+
+      // 缓存
+      let targetMap = this.#paramsCache.get(target);
+      if (!targetMap) {
+        targetMap = new Map<Key, Array<string>>();
+        this.#paramsCache.set(Object, targetMap);
+      }
+
+      targetMap.set(key, params);
+    }
+    return params[index] || '';
   }
 
 }
