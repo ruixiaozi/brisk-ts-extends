@@ -17,5 +17,6 @@ export type ParamCallbackFunc = (target: any, key: Key, index: number, paramName
 export type MethodCallbackFunc = (
   target: any,
   key: Key,
-  descriptor: PropertyDescriptor
+  descriptor: PropertyDescriptor,
+  paramNames: string[],
 ) => void;

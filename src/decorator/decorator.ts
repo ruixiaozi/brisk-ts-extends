@@ -69,27 +69,27 @@ export class DecoratorFactory {
       // 三个参数
       if (target !== undefined && key !== undefined && descriptorOrIndex !== undefined) {
         const oTarget = target as any;
+        const paramNames = this.getParamNames(oTarget, key);
         if (typeof descriptorOrIndex === 'number') {
           // 第三个参数为数字，参数装饰器
-          const paramName = this.getParamName(oTarget, key, descriptorOrIndex);
+          const paramName = paramNames[descriptorOrIndex] || '';
           this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex, paramName);
           return;
         }
 
         // 方法和访问器装饰器
-        this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex);
+        this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex, paramNames);
       }
     };
   }
 
   /**
-   * 获取参数名称
+   * 获取参数名称列表
    * @param target 目标类的原型
    * @param key 方法名称
-   * @param index 参数序号
    * @returns
    */
-  private getParamName(target: any, key: Key, index: number): string {
+  private getParamNames(target: any, key: Key): string[] {
     let params = this.#paramsCache.get(target)?.get(key);
     if (!params) {
       const fnc: Function = target[key];
@@ -109,7 +109,8 @@ export class DecoratorFactory {
 
       targetMap.set(key, params);
     }
-    return params[index] || '';
+    return params;
   }
+
 
 }
