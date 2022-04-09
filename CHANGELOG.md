@@ -9,6 +9,7 @@
 
 + decorator 增加参数装饰器获取参数名称
 + 增加example
++ is config修复bug
 
 ## 1.1.0 
 ###### 发布日期：2022.04.04

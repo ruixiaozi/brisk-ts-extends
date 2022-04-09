@@ -8,10 +8,14 @@ export function configPath(path: string) {
   if (!fs.existsSync(path)) {
     throw new Error('brisk-ts-extends: [is] module config path is not exists');
   }
-  config = require(path);
-  if (typeof config !== 'object') {
+  let theConfig = require(path);
+  if (typeof theConfig !== 'object') {
     throw new Error('brisk-ts-extends: [is] module config is error');
   }
+  config = {
+    ...config,
+    ...theConfig,
+  };
 }
 
 export function is<T>(target: any, typeName: string): target is T {
