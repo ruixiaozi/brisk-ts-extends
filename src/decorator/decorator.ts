@@ -98,7 +98,7 @@ export class DecoratorFactory {
         ?.match(/^.*?\((?<params>[^)]*)\)/u)
         ?.groups
         ?.params
-        ?.split(',')?.map((item) => item.trim().match(/^(?<paramName>[^=;,:\s]+)/u).groups?.paramName || '') || [];
+        ?.split(',')?.map((item) => item.trim().match(/^(?<paramName>[^=;,:\s]+)/u)?.groups?.paramName || '') || [];
 
       // 缓存
       let targetMap = this.#paramsCache.get(target);
