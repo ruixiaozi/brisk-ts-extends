@@ -19,5 +19,6 @@
         "titleBar.inactiveForeground": "#e7e7e799"
     },
     "peacock.color": "#007fff",
-    "window.title": "Brisk-ts-extends"
+    "window.title": "Brisk-ts-extends",
+    "compile-hero.disable-compile-files-on-did-save-code": false
 }

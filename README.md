@@ -17,6 +17,12 @@
 
 Copyright (c) 2022 Ruixiaozi
 
+# Documentation
+
+`git config --global core.autocrlf false`
+
+[参考Example](./example)
+
 # ChangeLog
 
 [查看CHANGELOG](./CHANGELOG.md)
