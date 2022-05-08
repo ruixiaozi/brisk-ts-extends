@@ -1,9 +1,0 @@
-{
-  "targets": [
-    { "extname": ".js", "module": "commonjs" }
-  ],
-  "projects": [
-    "tsconfig.json",
-    "tsconfig.lib.json"
-  ]
-}

@@ -40,4 +40,5 @@ exceptions:
   - /types
   - /index.js
   - /index.d.ts
+  - /.brisk-ts-extend-runtime.json
 

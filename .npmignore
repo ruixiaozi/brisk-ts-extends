@@ -32,3 +32,4 @@ pnpm-debug.log*
 /tsconfig.json
 /tsconfig.lib.json
 /CHANGELOG.md
+.brisk-ts-extend-runtime.json
