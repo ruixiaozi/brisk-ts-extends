@@ -22,7 +22,7 @@ export interface RuntimeType {
   methods?: RuntimeMethod[];
 }
 
-interface RuntimeTypes {
+export interface RuntimeTypes {
   [name: string]: RuntimeType;
 }
 
