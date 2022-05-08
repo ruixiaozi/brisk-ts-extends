@@ -51,6 +51,10 @@ export class RuntimeTypeContainer {
     }
   }
 
+  static getAll() {
+    return this.#runtimeTypes;
+  }
+
 }
 
 RuntimeTypeContainer.readFromFile();
