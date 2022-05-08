@@ -1,9 +1,10 @@
 {
   "name": "brisk-ts-extends",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "",
   "bin": {
-    "ts-extends-is": "./bin/is.bin.js"
+    "ts-extends-is": "./bin/is/is.bin.js",
+    "ts-extends-runtime": "./bin/types/runtime.bin.js"
   },
   "scripts": {
     "test": "ts-node src/is/bin.ts",
