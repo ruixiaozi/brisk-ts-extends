@@ -8,6 +8,7 @@ import {
   PropertyCallbackFunc,
   ParamCallbackFunc,
   MethodCallbackFunc,
+  RuntimeTypeContainer,
 } from '../types';
 
 
@@ -55,14 +56,17 @@ export class DecoratorFactory {
       // 只有一个参数，类装饰器
       if (target !== undefined && key === undefined && descriptorOrIndex === undefined) {
         const cTarget = target as Class;
-        this._classCallback && this._classCallback(cTarget);
+        const cTargetType = RuntimeTypeContainer.get(cTarget.name);
+        this._classCallback && this._classCallback(cTarget, cTargetType);
         return;
       }
 
       // 只有两个参数，属性装饰器
       if (target !== undefined && key !== undefined && descriptorOrIndex === undefined) {
         const oTarget = target as any;
-        this._propertyCallback && this._propertyCallback(oTarget, key);
+        const oTargetType = RuntimeTypeContainer.get(oTarget.name || oTarget.constructor?.name || '');
+        const typeNames = oTargetType?.properties?.find((item) => item.name === key)?.typeNames;
+        this._propertyCallback && this._propertyCallback(oTarget, key, typeNames);
         return;
       }
 
@@ -70,15 +74,17 @@ export class DecoratorFactory {
       if (target !== undefined && key !== undefined && descriptorOrIndex !== undefined) {
         const oTarget = target as any;
         const paramNames = this.getParamNames(oTarget, key);
+        const oTargetType = RuntimeTypeContainer.get(oTarget.name || oTarget.constructor?.name || '');
+        const params = oTargetType?.methods?.find((item) => item.name === key)?.params;
         if (typeof descriptorOrIndex === 'number') {
           // 第三个参数为数字，参数装饰器
           const paramName = paramNames[descriptorOrIndex] || '';
-          this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex, paramName);
+          this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex, paramName, params?.[descriptorOrIndex]);
           return;
         }
 
         // 方法和访问器装饰器
-        this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex, paramNames);
+        this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex, paramNames, params);
       }
     };
   }
