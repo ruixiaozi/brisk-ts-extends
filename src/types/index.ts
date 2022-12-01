@@ -42,9 +42,12 @@ export type Decorator = (
   target: Target,
   key?: Key,
   descriptorOrIndex?: DescOrNum
-) => void;
+) => any;
 // 类装饰器回调方法类型
-export type ClassCallbackFunc = (target: Class, targetTypeDes?: TypeDes) => void;
+export type ClassCallbackFunc = (
+  target: Class,
+  targetTypeDes?: TypeDes
+) => Class | void;
 // 属性装饰器回调方法类型
 export type PropertyCallbackFunc = (
   target: any,
@@ -63,6 +66,6 @@ export type MethodCallbackFunc = (
   target: any,
   key: Key,
   descriptor: PropertyDescriptor,
-  params?: ParamsDes[],
-) => void;
+  functionDes?: FunctionsDes,
+) => PropertyDescriptor | void;
 

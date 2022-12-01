@@ -1,6 +1,6 @@
 import { DecoratorFactory } from "../src/decorator";
 import { get} from '../src/runtime/index';
-import { ParamsDes } from "../src/types";
+import { FunctionsDes } from "../src/types";
 
 
 describe('decorator', () => {
@@ -10,9 +10,9 @@ describe('decorator', () => {
     const singletons: any = {};
     function ClassDecoratorTest() {
       return new DecoratorFactory()
-        .setClassCallback((target, targetDes) => {
-          singletons[target.name] = {
-            instance: new target(),
+        .setClassCallback((Target, targetDes) => {
+          singletons[Target.name] = {
+            instance: new Target(),
             des: targetDes,
           };
         })
@@ -26,6 +26,29 @@ describe('decorator', () => {
 
     expect(singletons['Test1']?.instance?.test).toEqual(1);
     expect(singletons['Test1']?.des?.properties?.[0]?.key).toEqual('test');
+  })
+
+  // DecoratorFactory.getDecorator方法应该返回一个类装饰器，当调用DecoratorFactory.setClassCallback，并返回一个新的构造方法
+  test('DecoratorFactory.getDecorator Should return a class decorator When call DecoratorFactory.setClassCallback and return new constructor', () => {
+    function ClassDecoratorTest() {
+      return new DecoratorFactory()
+        .setClassCallback((Target, targetDes) => {
+          return class extends Target {
+            test = 1;
+            test2 = 2;
+          }
+        })
+        .getDecorator();
+    }
+
+    @ClassDecoratorTest()
+    class Test11 {
+      test = 1;
+    }
+
+    const test11 = new Test11();
+    expect(test11.test).toEqual(1);
+    expect((test11 as any).test2).toEqual(2);
   })
 
   // DecoratorFactory.getDecorator方法应该返回一个属性装饰器，当调用DecoratorFactory.setPropertyCallback后
@@ -83,12 +106,12 @@ describe('decorator', () => {
 
   // DecoratorFactory.getDecorator方法应该返回一个方法装饰器，当调用DecoratorFactory.setMethodCallback后
   test('DecoratorFactory.getDecorator Should return a method decorator When call DecoratorFactory.setMethodCallback', () => {
-    let methodParams: ParamsDes[] | undefined;
+    let methodDes: FunctionsDes | undefined;
     function MethodDecoratorTest() {
       return new DecoratorFactory()
-        .setMethodCallback((target, key, descriptor, params) => {
-          if (params) {
-            methodParams = params;
+        .setMethodCallback((target, key, descriptor, functionDes) => {
+          if (functionDes) {
+            methodDes = functionDes;
           }
         })
         .getDecorator();
@@ -100,7 +123,35 @@ describe('decorator', () => {
         console.log(param1);
       }
     }
-    expect(methodParams?.[0]?.key).toEqual('param1');
+    expect(methodDes?.name).toEqual('test');
+  })
+
+   // DecoratorFactory.getDecorator方法应该返回一个方法装饰器，当调用DecoratorFactory.setMethodCallback，并返回一个属性描述符
+   test('DecoratorFactory.getDecorator Should return a method decorator When call DecoratorFactory.setMethodCallback and return a PropertyDescriptor', () => {
+    function MethodDecoratorTest() {
+      return new DecoratorFactory()
+        .setMethodCallback((target, key, descriptor, functionDes) => {
+          return {
+            enumerable: true,
+            configurable: true,
+            writable: false,
+            value: () => {
+              return descriptor.value?.() + '2';
+            }
+          } as PropertyDescriptor;
+        })
+        .getDecorator();
+    }
+
+    class Test44 {
+      @MethodDecoratorTest()
+      test() {
+        return '1';
+      }
+    }
+
+    const test44 = new Test44();
+    expect(test44.test()).toEqual('12');
   })
 
 

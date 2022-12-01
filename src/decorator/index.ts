@@ -51,13 +51,13 @@ export class DecoratorFactory {
   }
 
   public getDecorator(): Decorator {
-    return (target: Target, key?: Key, descriptorOrIndex?: DescOrNum): void => {
+    return (target: Target, key?: Key, descriptorOrIndex?: DescOrNum): any => {
       // 只有一个参数，类装饰器
       if (target !== undefined && key === undefined && descriptorOrIndex === undefined) {
         const cTarget = target as Class;
         const cTargetType = runtime.get(cTarget.name);
-        this._classCallback && this._classCallback(cTarget, cTargetType);
-        return;
+        // 如果返回一个新的构造方法，则作为当前类的构造方法
+        return this._classCallback && this._classCallback(cTarget, cTargetType);
       }
 
       // 只有两个参数，属性装饰器
@@ -73,15 +73,16 @@ export class DecoratorFactory {
       if (target !== undefined && key !== undefined && descriptorOrIndex !== undefined) {
         const oTarget = target as any;
         const oTargetType = runtime.get(oTarget.name || oTarget.constructor?.name);
-        const params = oTargetType?.functions?.find((item) => item.name === key)?.params;
+        const functionDes = oTargetType?.functions?.find((item) => item.name === key);
         if (typeof descriptorOrIndex === 'number') {
           // 第三个参数为数字，参数装饰器
-          this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex, params?.[descriptorOrIndex]);
+          this._paramCallback && this._paramCallback(oTarget, key, descriptorOrIndex, functionDes?.params?.[descriptorOrIndex]);
+          // 参数装饰器没有返回值
           return;
         }
 
-        // 方法和访问器装饰器
-        this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex, params);
+        // 方法和访问器装饰器，如果返回PropertyDescriptor，将此描述符作为方法的属性描述符
+        return this._methodCallback && this._methodCallback(oTarget, key, descriptorOrIndex, functionDes);
       }
     };
   }

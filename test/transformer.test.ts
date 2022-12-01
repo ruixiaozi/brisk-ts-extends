@@ -312,8 +312,16 @@ describe('transformer', () => {
     `, tsconfig);
     expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
     expect(res.outputText).toContain('__brisk_ts_extends_runtime__.isLike(superInterfaceInstance, "SuperInterface");',)
-
   })
 
+  // transformer，应该不转换，当有一个匿名的类声明
+  test('transformer Should not transform When has a anonymity class declare', () => {
+    const res = ts.transpileModule(`
+      class {
+        test: string = '123';
+      }
+    `, tsconfig);
+    expect(res.outputText).not.toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
+  })
 
 })
