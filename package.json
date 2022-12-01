@@ -1,0 +1,48 @@
+{
+  "name": "brisk-ts-extends",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "clear": "rimraf ./runtime ./decorator ./transformer ./types ./index.js ./index.d.ts",
+    "precompile": "npm run clear",
+    "compile": "tsc",
+    "prepare": "husky install",
+    "test": "jest",
+    "test:staged": "jest --bail --findRelatedTests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruixiaozi/brisk-ts-extends.git"
+  },
+  "keywords": [
+    "typescript",
+    "extends",
+    "brisk"
+  ],
+  "author": "ruixiaozi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ruixiaozi/brisk-ts-extends/issues"
+  },
+  "homepage": "https://github.com/ruixiaozi/brisk-ts-extends#readme",
+  "devDependencies": {
+    "@commitlint/cli": "16.2.1",
+    "@commitlint/config-conventional": "16.2.1",
+    "@types/jest": "^29.2.3",
+    "@types/node": "17.0.21",
+    "@typescript-eslint/eslint-plugin": "5.13.0",
+    "@typescript-eslint/parser": "5.13.0",
+    "dirlint": "1.0.1",
+    "eslint": "8.10.0",
+    "eslint-config-brisk": "1.0.3",
+    "husky": "7.0.4",
+    "jest": "^29.3.1",
+    "lint-staged": "12.3.4",
+    "rimraf": "3.0.2",
+    "ts-jest": "^29.0.3",
+    "ttypescript": "^1.5.13",
+    "typescript": "4.8"
+  }
+}

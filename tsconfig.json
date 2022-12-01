@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2021", // require node >= 12
+    "module": "CommonJS",
+    "declaration": true,
+    "outDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "pretty": true,
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["test/**/*.ts"]
+}
