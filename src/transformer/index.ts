@@ -317,9 +317,13 @@ function visitInterface(node: ts.InterfaceDeclaration, program: ts.Program, cont
   return interfaceNode;
 }
 
-function visitClass(node: ts.ClassDeclaration, program: ts.Program, context: ts.TransformationContext): ts.Node[] | undefined {
+function visitClass(node: ts.ClassDeclaration, program: ts.Program, context: ts.TransformationContext): ts.Node | ts.Node[] | undefined {
+  // 如果是匿名类，直接返回
+  if (!node.name) {
+    return node;
+  }
   // 类名称
-  const className = node.name!.getText();
+  const className = node.name.getText();
   // 获取到扩展的类型名称列表
   const extendsNames = node.heritageClauses?.find((item) => item.token === ts.SyntaxKind.ExtendsKeyword)?.types
     .map((item) => item.getText()) || [];
