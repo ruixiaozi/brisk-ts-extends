@@ -2,7 +2,7 @@ export type Class<T = any> = new (...args: Array<any>)=> T;
 export type Target = Class | object;
 export type Key = string | symbol;
 
-export type TypeKind = 'string' | 'number' | 'boolean' | 'function' | 'any';
+export type TypeKind = string;
 
 export interface PropertiesDes {
   key: string;

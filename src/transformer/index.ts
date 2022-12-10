@@ -1,6 +1,31 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { FunctionsDes, PropertiesDes, TypeKind } from '../types';
+// import { FunctionsDes, PropertiesDes, TypeKind } from '../types';
+
+type TypeKind = ts.StringLiteral;
+
+interface PropertiesDes {
+  key: string;
+  type: Array<TypeKind> | TypeKind;
+  option: boolean;
+  default?: string;
+  meta?: any;
+}
+
+interface ParamsDes {
+  key: string;
+  type: Array<TypeKind> | TypeKind;
+  option: boolean;
+  default?: string;
+  meta?: any;
+}
+
+interface FunctionsDes {
+  name: string;
+  returnType: Array<TypeKind> | TypeKind;
+  params: Array<ParamsDes>;
+  meta?: any;
+}
 
 const briskRuntimeIdenfiy = ts.factory.createIdentifier('__brisk_ts_extends_runtime__');
 
@@ -11,24 +36,26 @@ let __brisk = false;
 function transType(type?: ts.TypeNode): TypeKind | TypeKind[] {
   switch (type?.kind) {
     case ts.SyntaxKind.StringKeyword:
-      return 'string';
+      return ts.factory.createStringLiteral('string');
     case ts.SyntaxKind.NumberKeyword:
-      return 'number';
+      return ts.factory.createStringLiteral('number');
     case ts.SyntaxKind.BooleanKeyword:
-      return 'boolean';
+      return ts.factory.createStringLiteral('boolean');
     case ts.SyntaxKind.FunctionType:
-      return 'function';
+      return ts.factory.createStringLiteral('function');
     case ts.SyntaxKind.UnionType:
       return (type as ts.UnionTypeNode)?.types?.map((item) => transType(item) as TypeKind);
     case ts.SyntaxKind.TypeReference:
-      switch ((type as ts.TypeReferenceNode).typeName.getText()) {
+      // eslint-disable-next-line no-case-declarations
+      const name = (type as ts.TypeReferenceNode).typeName.getText();
+      switch (name) {
         case 'Function':
-          return 'function';
+          return ts.factory.createStringLiteral('function');
         default:
-          return 'any';
+          return ts.factory.createStringLiteral(name);
       }
     default:
-      return 'any';
+      return ts.factory.createStringLiteral('any');
   }
 }
 
@@ -47,9 +74,9 @@ function createPropertyNode(properties: PropertiesDes[], context: ts.Transformat
             context.factory.createIdentifier('type'),
             Array.isArray(item.type)
               ? context.factory.createArrayLiteralExpression(
-                item.type.map((type) => context.factory.createStringLiteral(type)),
+                item.type,
                 false,
-              ) : context.factory.createStringLiteral(item.type),
+              ) : item.type,
           ),
           context.factory.createPropertyAssignment(
             context.factory.createIdentifier('option'),
@@ -87,9 +114,9 @@ function createFunctionNode(functions: FunctionsDes[], context: ts.Transformatio
             context.factory.createIdentifier('returnType'),
             Array.isArray(item.returnType)
               ? context.factory.createArrayLiteralExpression(
-                item.returnType.map((type) => context.factory.createStringLiteral(type)),
+                item.returnType,
                 false,
-              ) : context.factory.createStringLiteral(item.returnType),
+              ) : item.returnType,
           ),
           context.factory.createPropertyAssignment(
             context.factory.createIdentifier('params'),
@@ -103,9 +130,9 @@ function createFunctionNode(functions: FunctionsDes[], context: ts.Transformatio
                   context.factory.createIdentifier('type'),
                   Array.isArray(param.type)
                     ? context.factory.createArrayLiteralExpression(
-                      param.type.map((type) => context.factory.createStringLiteral(type)),
+                      param.type,
                       false,
-                    ) : context.factory.createStringLiteral(param.type),
+                    ) : param.type,
                 ),
                 context.factory.createPropertyAssignment(
                   context.factory.createIdentifier('option'),
@@ -147,9 +174,9 @@ function createPropertyStaticNode(propertiesStatic: PropertiesDes[], context: ts
             context.factory.createIdentifier('type'),
             Array.isArray(item.type)
               ? context.factory.createArrayLiteralExpression(
-                item.type.map((type) => context.factory.createStringLiteral(type)),
+                item.type,
                 false,
-              ) : context.factory.createStringLiteral(item.type),
+              ) : item.type,
           ),
           context.factory.createPropertyAssignment(
             context.factory.createIdentifier('option'),
@@ -187,9 +214,9 @@ function createFunctionStaticNode(functionsStatic: FunctionsDes[], context: ts.T
             context.factory.createIdentifier('returnType'),
             Array.isArray(item.returnType)
               ? context.factory.createArrayLiteralExpression(
-                item.returnType.map((type) => context.factory.createStringLiteral(type)),
+                item.returnType,
                 false,
-              ) : context.factory.createStringLiteral(item.returnType),
+              ) : item.returnType,
           ),
           context.factory.createPropertyAssignment(
             context.factory.createIdentifier('params'),
@@ -203,9 +230,9 @@ function createFunctionStaticNode(functionsStatic: FunctionsDes[], context: ts.T
                   context.factory.createIdentifier('type'),
                   Array.isArray(param.type)
                     ? context.factory.createArrayLiteralExpression(
-                      param.type.map((type) => context.factory.createStringLiteral(type)),
+                      param.type,
                       false,
-                    ) : context.factory.createStringLiteral(param.type),
+                    ) : param.type,
                 ),
                 context.factory.createPropertyAssignment(
                   context.factory.createIdentifier('option'),
@@ -393,7 +420,6 @@ function visitClass(node: ts.ClassDeclaration, program: ts.Program, context: ts.
 
 function transIsLike(node: ts.CallExpression, program: ts.Program, context: ts.TransformationContext): ts.Node | undefined {
   const targetLetName = node.arguments?.[0]!.getText();
-
   const typeName = (node.typeArguments?.[0]! as ts.TypeReferenceNode).typeName.getText();
   __brisk = true;
   return context.factory.createCallExpression(
@@ -413,11 +439,9 @@ function visitNode(node: ts.Node, program: ts.Program, context: ts.Transformatio
   if (ts.isInterfaceDeclaration(node)) {
     return visitInterface(node, program, context);
   }
-
   if (ts.isClassDeclaration(node)) {
     return visitClass(node, program, context);
   }
-
   // isLike转换
   if (ts.isCallExpression(node)
     && node.expression.getText() === 'isLike'
@@ -427,10 +451,8 @@ function visitNode(node: ts.Node, program: ts.Program, context: ts.Transformatio
   ) {
     return transIsLike(node, program, context);
   }
-
   return ts.visitEachChild(node, (child) => visitNode(child, program, context), context);
 }
-
 
 function visitSourceFile(
   source: ts.SourceFile,
@@ -460,7 +482,6 @@ function visitSourceFile(
       undefined,
     ));
   }
-
   return ts.factory.updateSourceFile(source, nodes);
 }
 

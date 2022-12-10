@@ -67,6 +67,8 @@ function ClassDecoratorTest() {
 @ClassDecoratorTest()
 class Test1 {
   test = 1;
+  test1?: SuperInterface;
+  test2?: Atest;
 }
 
 console.log(singletons['Test1']?.des);

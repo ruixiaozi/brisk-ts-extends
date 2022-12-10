@@ -1,16 +1,19 @@
-import { TypeDes } from '../types';
+import { TypeDes, TypeKind } from '../types';
 
 // 保存运行时类型
 const runtimeTypes: { [key: string]: TypeDes } = {};
 
 /**
  * 判断值的类型是否与类型字符串一直
- * @param typeStr 类型字符串
+ * @param type 类型字符串
  * @param value 值
  * @returns
  */
-function equalType(typeStr: string, value: any) {
-  return typeStr === 'any' || typeof value === typeStr;
+function equalType(type: TypeKind, value: any) {
+  if (!['string', 'number', 'boolean', 'function'].includes(type)) {
+    return true;
+  }
+  return typeof value === type;
 }
 
 /**
@@ -71,8 +74,8 @@ export function isLike<T>(target: any, typeName?: string): target is T {
 
     // 联合类型，满足其中一种就行
     let unionRes = false;
-    for (let typeStr of prop.type) {
-      if (equalType(typeStr, target[prop.key])) {
+    for (let type of prop.type) {
+      if (equalType(type, target[prop.key])) {
         unionRes = true;
       }
     }
