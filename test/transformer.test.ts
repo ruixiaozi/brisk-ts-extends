@@ -171,7 +171,7 @@ describe('transformer', () => {
   test('transformer Should transform to append node When has a class declare', () => {
     const res = ts.transpileModule(`
       class SuperClass implements SuperInterface {
-        static test: String = '123';
+        static test: string = '123';
         static readonly readOnlyTest: number = 1;
 
         b: string = '222';
@@ -230,7 +230,7 @@ describe('transformer', () => {
     '    propertiesStatic: [\r\n' +
     '        {\r\n' +
     '            key: "test",\r\n' +
-    '            type: "any",\r\n' +
+    '            type: "string",\r\n' +
     '            option: false,\r\n' +
     `            default: "'123'"\r\n` +
     '        },\r\n' +
