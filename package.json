@@ -10,7 +10,7 @@
     "compile": "tsc",
     "prepare": "husky install",
     "test": "jest",
-    "test:staged": "jest --bail --findRelatedTests"
+    "test:staged": "jest --bail --findRelatedTests --passWithNoTests"
   },
   "repository": {
     "type": "git",

@@ -416,7 +416,8 @@ function visitClass(node: ts.ClassDeclaration, program: ts.Program, context: ts.
     functionsStatic,
   );
   __brisk = true;
-  return [classNode, node];
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return [classNode, ts.visitEachChild(node, (child) => visitNode(child, program, context), context)];
 }
 
 function transIsLike(node: ts.CallExpression, program: ts.Program, context: ts.TransformationContext): ts.Node | undefined {
