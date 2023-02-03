@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import * as ts from 'typescript';
 import * as path from 'path';
 // import { FunctionsDes, PropertiesDes, TypeKind } from '../types';
@@ -435,6 +436,23 @@ function transIsLike(node: ts.CallExpression, program: ts.Program, context: ts.T
   );
 }
 
+function transTypeCast(node: ts.CallExpression, program: ts.Program, context: ts.TransformationContext): ts.Node | undefined {
+  const sourceLetName = node.arguments?.[0]!.getText();
+  const targetTypeName = (node.typeArguments?.[0]! as ts.TypeReferenceNode).typeName.getText();
+  __brisk = true;
+  return context.factory.createCallExpression(
+    context.factory.createPropertyAccessExpression(
+      briskRuntimeIdenfiy,
+      context.factory.createIdentifier('typeCast'),
+    ),
+    undefined,
+    [
+      context.factory.createIdentifier(sourceLetName),
+      context.factory.createStringLiteral(targetTypeName),
+    ],
+  );
+}
+
 function visitNode(node: ts.Node, program: ts.Program, context: ts.TransformationContext): ts.Node | ts.Node[] | undefined {
   if (ts.isInterfaceDeclaration(node)) {
     return visitInterface(node, program, context);
@@ -450,6 +468,15 @@ function visitNode(node: ts.Node, program: ts.Program, context: ts.Transformatio
     && node.typeArguments?.[0]?.kind === ts.SyntaxKind.TypeReference
   ) {
     return transIsLike(node, program, context);
+  }
+  // typeCast转换
+  if (ts.isCallExpression(node)
+    && node.expression.getText() === 'typeCast'
+    && node.arguments.length === 1
+    && node.typeArguments?.length === 1
+    && node.typeArguments?.[0]?.kind === ts.SyntaxKind.TypeReference
+  ) {
+    return transTypeCast(node, program, context);
   }
   return ts.visitEachChild(node, (child) => visitNode(child, program, context), context);
 }

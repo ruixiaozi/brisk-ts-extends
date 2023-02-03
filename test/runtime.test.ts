@@ -1,4 +1,4 @@
-import { append, get, isLike } from '../src/runtime/index';
+import { append, get, isLike, typeCast } from '../src/runtime/index';
 
 describe('runtime', () => {
 
@@ -185,6 +185,43 @@ describe('runtime', () => {
     };
     expect(isLike(obj, 'Test9')).toEqual(true);
     expect(isLike(objFalse, 'Test9')).toEqual(false);
+  })
+
+
+  test('typeCast Should transform object type to target', () => {
+    append('Test10', {
+      properties: [
+        {
+          key: "a",
+          type: "string",
+          option: false
+        },
+        {
+          key: "b",
+          type: ["string", "number"],
+          option: false
+        },
+        {
+          key: "c",
+          type: 'boolean',
+          option: false
+        }
+      ],
+      functions: [],
+      parents: []
+    });
+    const obj1 = {
+      a: '123',
+      aa: 123,
+    };
+    const obj2 = {
+      b: 11,
+      bb: true
+    }
+    expect(typeCast([obj1, obj2], 'Test10')).toEqual({
+      a: '123',
+      b: 11
+    });
   })
 
 })

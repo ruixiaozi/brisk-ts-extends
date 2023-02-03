@@ -324,4 +324,13 @@ describe('transformer', () => {
     expect(res.outputText).not.toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
   })
 
+  // transformer，应该转换为一个typeCast具有2个参数的方法调用，当ts中有一个typeCast调用，并且只有一个参数和一个泛型，并且泛型为类型引用
+  test('transformer Should transform to has two params typeCast call When typeCast has one param and one type declare', () => {
+    const res = ts.transpileModule(`
+      typeCast<SuperInterface>(superInterfaceInstance)
+    `, tsconfig);
+    expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
+    expect(res.outputText).toContain('__brisk_ts_extends_runtime__.typeCast(superInterfaceInstance, "SuperInterface");',)
+  })
+
 })

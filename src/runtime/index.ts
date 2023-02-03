@@ -40,6 +40,68 @@ export function get(typeName: string) {
 
 
 /**
+ * 类型转换，将源对象转成泛型类型；此typeCast重载会在编译时转换为2个参数的重载
+ * @param source 源对象
+ */
+export function typeCast<T>(source: any): T
+
+/**
+ * 类型转换，根据目标类型名称进行转换
+ * @param source 源对象
+ * @param targetTypeName 目标类型名称
+ */
+export function typeCast<T>(source: any, targetTypeName: string): T
+
+/**
+ * 类型转换，将源对象数组转成泛型类型；此typeCast重载会在编译时转换为2个参数的重载
+ * @param sources 源对象数组
+ */
+export function typeCast<T>(sources: any[]): T
+
+/**
+ * 类型转换，根据目标类型名称将源对象数组进行转换
+ * @param sources 源对象数组
+ * @param targetTypeName 目标类型名称
+ */
+export function typeCast<T>(sources: any[], targetTypeName: string): T
+export function typeCast<T>(source: any | any[], targetTypeName?: string): T {
+  const res: any = {};
+  // 没找到对应的类型定义v
+  if (!targetTypeName || !runtimeTypes[targetTypeName] || typeof source !== 'object') {
+    return res;
+  }
+
+  const sourceArr = Array.isArray(source) ? source : [source];
+
+  // 将类型里有的字段转换过去，如果source为数组，则后续相同字段将覆盖前面的，没有的字段留空
+  for (let prop of runtimeTypes[targetTypeName].properties) {
+    for (let sourceObj of sourceArr) {
+      if (sourceObj[prop.key] === undefined) {
+        continue;
+      }
+      // 单类型，类型匹配才赋值
+      if (!Array.isArray(prop.type)) {
+        if (equalType(prop.type, sourceObj[prop.key])) {
+          res[prop.key] = sourceObj[prop.key];
+        }
+        continue;
+      }
+
+      // 联合类型，满足其中一种就行，满足才赋值
+      for (let type of prop.type) {
+        if (equalType(type, sourceObj[prop.key])) {
+          res[prop.key] = sourceObj[prop.key];
+          break;
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
+
+/**
  * 根据实际对象和对象名称，判断类型
  * @param target 实际对象
  * @param typeName 类型名称
@@ -47,7 +109,7 @@ export function get(typeName: string) {
 export function isLike<T>(target: any, typeName: string): target is T;
 
 /**
- * 根据泛型判断实际对象的类型
+ * 根据泛型判断实际对象的类型，此isLike重载会在编译时转换为2个参数的重载
  * @param target 实际对象
  */
 export function isLike<T>(target: any): target is T;
