@@ -52,6 +52,20 @@ export function get(typeName: string) {
 }
 
 /**
+ * 获取父类型（用于泛型定义）
+ * @param kind 类型
+ * @returns
+ */
+export function getParentTypeKind(kind: TypeKind | TypeKind[]) {
+  // 联合类型不处理
+  if (Array.isArray(kind)) {
+    return kind;
+  }
+  const inx = kind.indexOf(':');
+  return inx === -1 ? kind : kind.substring(0, inx);
+}
+
+/**
  * 获取子类型（用于泛型定义）
  * @param kind 类型
  * @returns

@@ -1,4 +1,4 @@
-import { append, get, getSubTypeKind, isLike, typeCast } from '../src/runtime/index';
+import { append, get, getParentTypeKind, getSubTypeKind, isLike, typeCast } from '../src/runtime/index';
 
 describe('runtime', () => {
 
@@ -225,7 +225,7 @@ describe('runtime', () => {
   })
 
 
-  test('getSubTypeKind Should get Reference type', () => {
+  test('getSubTypeKind Should get sub Reference type', () => {
     append('Test11', {
       properties: [
         {
@@ -258,6 +258,22 @@ describe('runtime', () => {
       b: ['a', 'b']
     };
     expect(isLike(obj, 'Test12')).toEqual(true);
+  })
+
+  test('getParentTypeKind Should get parent Reference type', () => {
+    append('Test13', {
+      properties: [
+        {
+          key: "a",
+          type: "Promise:Test",
+          option: false
+        },
+      ],
+      functions: [],
+      parents: []
+    });
+    const test11Type = get('Test13');
+    expect(getParentTypeKind(test11Type.properties[0].type)).toBe('Promise');
   })
 
 })
