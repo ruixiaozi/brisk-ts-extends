@@ -55,6 +55,8 @@ describe('transformer', () => {
         b: boolean;
         bb: () => void;
         bbb: Function;
+        bbbb: Array<string>;
+        bbbbb: string[];
       }
       export interface SubInterface extends SuperInterface {
         a: string;
@@ -67,6 +69,7 @@ describe('transformer', () => {
         cTest(): void;
       }
     `, tsconfig);
+    console.log(res);
     expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
     expect(res.outputText).toContain('__brisk_ts_extends_runtime__.append("SuperInterface", {\r\n' +
     '    properties: [\r\n' +
@@ -83,6 +86,16 @@ describe('transformer', () => {
     '        {\r\n' +
     '            key: "bbb",\r\n' +
     '            type: "function",\r\n' +
+    '            option: false\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
+    '            option: false\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
     '            option: false\r\n' +
     '        }\r\n' +
     '    ],\r\n' +
@@ -190,6 +203,9 @@ describe('transformer', () => {
 
         aaaa?: string | number | undefined;
 
+        bbbb?: Array<string>;
+        bbbbb?: string[];
+
         aTest(param: number): string {
           throw new Error("Method not implemented.");
         }
@@ -205,6 +221,7 @@ describe('transformer', () => {
         b: string = '123';
       }
     `, tsconfig);
+    console.log(res);
     expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
     expect(res.outputText).toContain('__brisk_ts_extends_runtime__.append("SuperClass", {\r\n' +
     '    properties: [\r\n' +
@@ -265,6 +282,16 @@ describe('transformer', () => {
     '        {\r\n' +
     '            key: "aaaa",\r\n' +
     '            type: ["string", "number", "any"],\r\n' +
+    '            option: true\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
+    '            option: true\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
     '            option: true\r\n' +
     '        },\r\n' +
     '        {\r\n' +

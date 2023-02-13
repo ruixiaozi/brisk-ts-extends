@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* eslint-disable max-lines */
 import * as ts from 'typescript';
 import * as path from 'path';
@@ -34,7 +35,7 @@ let runtimePackage = 'brisk-ts-extends/runtime';
 
 let __brisk = false;
 
-function transType(type?: ts.TypeNode): TypeKind | TypeKind[] {
+function transType(type?: ts.TypeNode): ts.StringLiteral | ts.StringLiteral[] {
   switch (type?.kind) {
     case ts.SyntaxKind.StringKeyword:
       return ts.factory.createStringLiteral('string');
@@ -45,24 +46,29 @@ function transType(type?: ts.TypeNode): TypeKind | TypeKind[] {
     case ts.SyntaxKind.FunctionType:
       return ts.factory.createStringLiteral('function');
     case ts.SyntaxKind.UnionType:
-      // 联合类型本身也是联合类型的不处理
-      return (type as ts.UnionTypeNode)?.types?.map((item) => transType(item) as TypeKind);
+      // 联合类型本身也是联合类型的只取子联合类型的第一个
+      return (type as ts.UnionTypeNode)?.types?.map((item) => {
+        const res = transType(item);
+        return Array.isArray(res) ? res[0] : res;
+      });
     case ts.SyntaxKind.TypeReference:
-      // eslint-disable-next-line no-case-declarations
       const typeRefNode = (type as ts.TypeReferenceNode);
-      // eslint-disable-next-line no-case-declarations
       const name = typeRefNode.typeName.getText();
       switch (name) {
         case 'Function':
           return ts.factory.createStringLiteral('function');
         default:
-          return typeRefNode.typeArguments?.length
-            // 目前只对泛型的第一个类型进行解析
-            ? ts.factory.createStringLiteral(`${name}:${transType(typeRefNode.typeArguments[0])}`)
-            : ts.factory.createStringLiteral(name);
+          if (typeRefNode.typeArguments?.length) {
+            // 目前只对泛型的第一个类型进行解析，且联合类型的只取子联合类型的第一个
+            const subType = transType(typeRefNode.typeArguments[0]);
+            return ts.factory.createStringLiteral(`${name}:${(Array.isArray(subType) ? subType[0] : subType).text}`);
+          }
+          return ts.factory.createStringLiteral(name);
       }
     case ts.SyntaxKind.ArrayType:
-      return ts.factory.createStringLiteral(`Array:${transType((type as ts.ArrayTypeNode).elementType)}`);
+      // 联合类型的只取子联合类型的第一个
+      const elementType = transType((type as ts.ArrayTypeNode).elementType);
+      return ts.factory.createStringLiteral(`Array:${(Array.isArray(elementType) ? elementType[0] : elementType).text}`);
     default:
       return ts.factory.createStringLiteral('any');
   }
