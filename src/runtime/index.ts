@@ -5,15 +5,28 @@ const runtimeTypes: { [key: string]: TypeDes } = {};
 
 /**
  * 判断值的类型是否与类型字符串一直
+ * 只判断数组、字符串、数字、boolean、方法，其他类型默认通过
  * @param type 类型字符串
  * @param value 值
  * @returns
  */
-function equalType(type: TypeKind, value: any) {
-  if (!['string', 'number', 'boolean', 'function'].includes(type)) {
-    return true;
+function equalType(type: TypeKind, value: any): boolean {
+  // 检查数组
+  if (type.startsWith('Array:')) {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+    const elementType = type.substring(6);
+    // 每个元素类型都符合
+    return value.every((val: any) => equalType(elementType, val));
   }
-  return typeof value === type;
+
+  if (['string', 'number', 'boolean', 'function'].includes(type)) {
+    return typeof value === type;
+  }
+
+  // 其他类型默认true
+  return true;
 }
 
 /**
@@ -36,6 +49,20 @@ export function append(typeName: string, typeDes: TypeDes) {
  */
 export function get(typeName: string) {
   return runtimeTypes[typeName];
+}
+
+/**
+ * 获取子类型（用于泛型定义）
+ * @param kind 类型
+ * @returns
+ */
+export function getSubTypeKind(kind: TypeKind | TypeKind[]) {
+  // 联合类型不处理
+  if (Array.isArray(kind)) {
+    return kind;
+  }
+  const inx = kind.indexOf(':');
+  return inx === -1 ? kind : kind.substring(inx + 1);
 }
 
 

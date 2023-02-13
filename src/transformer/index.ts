@@ -45,16 +45,24 @@ function transType(type?: ts.TypeNode): TypeKind | TypeKind[] {
     case ts.SyntaxKind.FunctionType:
       return ts.factory.createStringLiteral('function');
     case ts.SyntaxKind.UnionType:
+      // 联合类型本身也是联合类型的不处理
       return (type as ts.UnionTypeNode)?.types?.map((item) => transType(item) as TypeKind);
     case ts.SyntaxKind.TypeReference:
       // eslint-disable-next-line no-case-declarations
-      const name = (type as ts.TypeReferenceNode).typeName.getText();
+      const typeRefNode = (type as ts.TypeReferenceNode);
+      // eslint-disable-next-line no-case-declarations
+      const name = typeRefNode.typeName.getText();
       switch (name) {
         case 'Function':
           return ts.factory.createStringLiteral('function');
         default:
-          return ts.factory.createStringLiteral(name);
+          return typeRefNode.typeArguments?.length
+            // 目前只对泛型的第一个类型进行解析
+            ? ts.factory.createStringLiteral(`${name}:${transType(typeRefNode.typeArguments[0])}`)
+            : ts.factory.createStringLiteral(name);
       }
+    case ts.SyntaxKind.ArrayType:
+      return ts.factory.createStringLiteral(`Array:${transType((type as ts.ArrayTypeNode).elementType)}`);
     default:
       return ts.factory.createStringLiteral('any');
   }

@@ -1,4 +1,4 @@
-import { append, get, isLike, typeCast } from '../src/runtime/index';
+import { append, get, getSubTypeKind, isLike, typeCast } from '../src/runtime/index';
 
 describe('runtime', () => {
 
@@ -222,6 +222,42 @@ describe('runtime', () => {
       a: '123',
       b: 11
     });
+  })
+
+
+  test('getSubTypeKind Should get Reference type', () => {
+    append('Test11', {
+      properties: [
+        {
+          key: "a",
+          type: "Promise:Test",
+          option: false
+        },
+      ],
+      functions: [],
+      parents: []
+    });
+    const test11Type = get('Test11');
+    expect(getSubTypeKind(test11Type.properties[0].type)).toBe('Test');
+  })
+
+  // isLike方法当类型为数组类型时，且实际类型满足，应该返回true
+  test('isLike Should return true When property is array type and it is right type', () => {
+    append('Test12', {
+      properties: [
+        {
+          key: "b",
+          type: "Array:string",
+          option: false
+        }
+      ],
+      functions: [],
+      parents: []
+    });
+    const obj = {
+      b: ['a', 'b']
+    };
+    expect(isLike(obj, 'Test12')).toEqual(true);
   })
 
 })
