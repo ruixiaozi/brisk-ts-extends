@@ -155,9 +155,21 @@ export function isLike<T>(target: any, typeName: string): target is T;
  */
 export function isLike<T>(target: any): target is T;
 export function isLike<T>(target: any, typeName?: string): target is T {
-  // 没找到对应的类型定义v
-  if (!typeName || !runtimeTypes[typeName] || typeof target !== 'object') {
+  const targetTypeof = typeof target;
+  // 没找到对应的类型定义，或者不是对象、字符串和数字
+  if (!typeName || !runtimeTypes[typeName] || (targetTypeof !== 'object' && targetTypeof !== 'string' && targetTypeof !== 'number')) {
     return false;
+  }
+
+  // 枚举类型
+  if (targetTypeof === 'string' || targetTypeof === 'number') {
+    const { enums } = runtimeTypes[typeName];
+    // 如果没有枚举定义，则返回失败
+    if (!enums) {
+      return false;
+    }
+    // 判断值是否再枚举列表内
+    return enums.includes(String(target));
   }
 
   // 只检查类型里面约定了，额外的属性不用比较

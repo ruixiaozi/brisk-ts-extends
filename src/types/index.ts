@@ -27,13 +27,13 @@ export interface FunctionsDes {
   meta?: any;
 }
 
-
 export interface TypeDes {
   properties: PropertiesDes[];
   functions: FunctionsDes[];
   parents: Array<string>;
   propertiesStatic?: PropertiesDes[];
   functionsStatic?: FunctionsDes[];
+  enums?: Array<string>,
   meta?: any;
 }
 

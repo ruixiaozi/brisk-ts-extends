@@ -276,4 +276,21 @@ describe('runtime', () => {
     expect(getParentTypeKind(test11Type.properties[0].type)).toBe('Promise');
   })
 
+  test('isLike Should check enum type', () => {
+    append('Test14', {
+      properties: [],
+      functions: [],
+      parents: [],
+      enums: [
+        'aa',
+        '1',
+        '2',
+        'cc'
+      ]
+    });
+    expect(isLike('aa', 'Test14')).toBe(true);
+    expect(isLike(1, 'Test14')).toBe(true);
+    expect(isLike(3, 'Test14')).toBe(false);
+  })
+
 })

@@ -285,6 +285,17 @@ function createParentNode(parents: string[], context: ts.TransformationContext) 
   );
 }
 
+// 创建枚举节点
+function createEnumNode(enums: string[], context: ts.TransformationContext) {
+  return context.factory.createPropertyAssignment(
+    context.factory.createIdentifier('enums'),
+    context.factory.createArrayLiteralExpression(
+      enums.map((item) => context.factory.createStringLiteral(item)),
+      false,
+    ),
+  );
+}
+
 // 创建添加到brisk-runtime的appen方法节点
 function createTypeAppendNode(
   context: ts.TransformationContext,
@@ -294,6 +305,7 @@ function createTypeAppendNode(
   parents: string[],
   propertiesStatic?: PropertiesDes[],
   functionsStatic?: FunctionsDes[],
+  enums?: string[],
 ) {
   const attrs = [
     // 成员属性
@@ -310,6 +322,10 @@ function createTypeAppendNode(
 
   if (functionsStatic) {
     attrs.push(createFunctionStaticNode(functionsStatic, context));
+  }
+
+  if (enums) {
+    attrs.push(createEnumNode(enums, context));
   }
 
   return context.factory.createExpressionStatement(context.factory.createCallExpression(
@@ -468,12 +484,44 @@ function transTypeCast(node: ts.CallExpression, program: ts.Program, context: ts
   );
 }
 
+function visitEnum(node: ts.EnumDeclaration, program: ts.Program, context: ts.TransformationContext): ts.Node | ts.Node[] | undefined {
+  const enumName = node.name.getText();
+  const enumNode = createTypeAppendNode(
+    context,
+    enumName,
+    [],
+    [],
+    [],
+    undefined,
+    undefined,
+    node.members.reduce((pre, current) => {
+      if (current.initializer) {
+        pre.push(current.initializer.getText().replaceAll(/['"]/ug, ''));
+      } else if (pre.length === 0) {
+        pre.push('0');
+      } else {
+        const preNum = Number(pre[pre.length - 1]);
+        if (!Number.isNaN(preNum)) {
+          pre.push(String(preNum + 1));
+        }
+      }
+      return pre;
+    }, [] as Array<string>),
+  );
+  __brisk = true;
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return [enumNode, ts.visitEachChild(node, (child) => visitNode(child, program, context), context)];
+}
+
 function visitNode(node: ts.Node, program: ts.Program, context: ts.TransformationContext): ts.Node | ts.Node[] | undefined {
   if (ts.isInterfaceDeclaration(node)) {
     return visitInterface(node, program, context);
   }
   if (ts.isClassDeclaration(node)) {
     return visitClass(node, program, context);
+  }
+  if (ts.isEnumDeclaration(node)) {
+    return visitEnum(node, program, context);
   }
   // isLike转换
   if (ts.isCallExpression(node)

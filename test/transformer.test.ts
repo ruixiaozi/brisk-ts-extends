@@ -360,4 +360,25 @@ describe('transformer', () => {
     expect(res.outputText).toContain('__brisk_ts_extends_runtime__.typeCast(superInterfaceInstance, "SuperInterface");',)
   })
 
+
+  // transformer，应该转换enum枚举
+  test('transformer Should transform enum', () => {
+    const res = ts.transpileModule(`
+      enum TEST_ENUM {
+        ENUM1,
+        ENUM2='enum2',
+        ENUM3=2,
+        ENUM4,
+        ENUM5='enum5',
+      }
+    `, tsconfig);
+    expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
+    expect(res.outputText).toContain('__brisk_ts_extends_runtime__.append("TEST_ENUM", {\r\n' +
+    '    properties: [],\r\n' +
+    '    functions: [],\r\n' +
+    '    parents: [],\r\n' +
+    `    enums: ["0", "enum2", "2", "3", "enum5"]\r\n` +
+    '});\r\n')
+  })
+
 })
