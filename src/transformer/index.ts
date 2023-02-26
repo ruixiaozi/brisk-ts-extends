@@ -496,7 +496,7 @@ function visitEnum(node: ts.EnumDeclaration, program: ts.Program, context: ts.Tr
     undefined,
     node.members.reduce((pre, current) => {
       if (current.initializer) {
-        pre.push(current.initializer.getText().replaceAll(/['"]/ug, ''));
+        pre.push(current.initializer.getText().replace(/['"]/ug, ''));
       } else if (pre.length === 0) {
         pre.push('0');
       } else {
