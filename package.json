@@ -10,7 +10,7 @@
     "compile": "tsc",
     "prepare": "husky install",
     "test": "jest",
-    "test:staged": "jest --bail --findRelatedTests"
+    "test:staged": "jest --bail --findRelatedTests --passWithNoTests"
   },
   "repository": {
     "type": "git",
@@ -32,8 +32,8 @@
     "@commitlint/config-conventional": "16.2.1",
     "@types/jest": "29.2.3",
     "@types/node": "17.0.21",
-    "@typescript-eslint/eslint-plugin": "5.13.0",
-    "@typescript-eslint/parser": "5.13.0",
+    "@typescript-eslint/eslint-plugin": "5.36.1",
+    "@typescript-eslint/parser": "5.36.1",
     "dirlint": "1.0.1",
     "eslint": "8.10.0",
     "eslint-config-brisk": "1.0.3",

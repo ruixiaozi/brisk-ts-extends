@@ -1,3 +1,5 @@
+/* eslint-disable no-case-declarations */
+/* eslint-disable max-lines */
 import * as ts from 'typescript';
 import * as path from 'path';
 // import { FunctionsDes, PropertiesDes, TypeKind } from '../types';
@@ -33,7 +35,7 @@ let runtimePackage = 'brisk-ts-extends/runtime';
 
 let __brisk = false;
 
-function transType(type?: ts.TypeNode): TypeKind | TypeKind[] {
+function transType(type?: ts.TypeNode): ts.StringLiteral | ts.StringLiteral[] {
   switch (type?.kind) {
     case ts.SyntaxKind.StringKeyword:
       return ts.factory.createStringLiteral('string');
@@ -44,16 +46,29 @@ function transType(type?: ts.TypeNode): TypeKind | TypeKind[] {
     case ts.SyntaxKind.FunctionType:
       return ts.factory.createStringLiteral('function');
     case ts.SyntaxKind.UnionType:
-      return (type as ts.UnionTypeNode)?.types?.map((item) => transType(item) as TypeKind);
+      // 联合类型本身也是联合类型的只取子联合类型的第一个
+      return (type as ts.UnionTypeNode)?.types?.map((item) => {
+        const res = transType(item);
+        return Array.isArray(res) ? res[0] : res;
+      });
     case ts.SyntaxKind.TypeReference:
-      // eslint-disable-next-line no-case-declarations
-      const name = (type as ts.TypeReferenceNode).typeName.getText();
+      const typeRefNode = (type as ts.TypeReferenceNode);
+      const name = typeRefNode.typeName.getText();
       switch (name) {
         case 'Function':
           return ts.factory.createStringLiteral('function');
         default:
+          if (typeRefNode.typeArguments?.length) {
+            // 目前只对泛型的第一个类型进行解析，且联合类型的只取子联合类型的第一个
+            const subType = transType(typeRefNode.typeArguments[0]);
+            return ts.factory.createStringLiteral(`${name}:${(Array.isArray(subType) ? subType[0] : subType).text}`);
+          }
           return ts.factory.createStringLiteral(name);
       }
+    case ts.SyntaxKind.ArrayType:
+      // 联合类型的只取子联合类型的第一个
+      const elementType = transType((type as ts.ArrayTypeNode).elementType);
+      return ts.factory.createStringLiteral(`Array:${(Array.isArray(elementType) ? elementType[0] : elementType).text}`);
     default:
       return ts.factory.createStringLiteral('any');
   }
@@ -270,6 +285,17 @@ function createParentNode(parents: string[], context: ts.TransformationContext) 
   );
 }
 
+// 创建枚举节点
+function createEnumNode(enums: string[], context: ts.TransformationContext) {
+  return context.factory.createPropertyAssignment(
+    context.factory.createIdentifier('enums'),
+    context.factory.createArrayLiteralExpression(
+      enums.map((item) => context.factory.createStringLiteral(item)),
+      false,
+    ),
+  );
+}
+
 // 创建添加到brisk-runtime的appen方法节点
 function createTypeAppendNode(
   context: ts.TransformationContext,
@@ -279,6 +305,7 @@ function createTypeAppendNode(
   parents: string[],
   propertiesStatic?: PropertiesDes[],
   functionsStatic?: FunctionsDes[],
+  enums?: string[],
 ) {
   const attrs = [
     // 成员属性
@@ -295,6 +322,10 @@ function createTypeAppendNode(
 
   if (functionsStatic) {
     attrs.push(createFunctionStaticNode(functionsStatic, context));
+  }
+
+  if (enums) {
+    attrs.push(createEnumNode(enums, context));
   }
 
   return context.factory.createExpressionStatement(context.factory.createCallExpression(
@@ -415,7 +446,8 @@ function visitClass(node: ts.ClassDeclaration, program: ts.Program, context: ts.
     functionsStatic,
   );
   __brisk = true;
-  return [classNode, node];
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return [classNode, ts.visitEachChild(node, (child) => visitNode(child, program, context), context)];
 }
 
 function transIsLike(node: ts.CallExpression, program: ts.Program, context: ts.TransformationContext): ts.Node | undefined {
@@ -435,12 +467,61 @@ function transIsLike(node: ts.CallExpression, program: ts.Program, context: ts.T
   );
 }
 
+function transTypeCast(node: ts.CallExpression, program: ts.Program, context: ts.TransformationContext): ts.Node | undefined {
+  const sourceLetName = node.arguments?.[0]!.getText();
+  const targetTypeName = (node.typeArguments?.[0]! as ts.TypeReferenceNode).typeName.getText();
+  __brisk = true;
+  return context.factory.createCallExpression(
+    context.factory.createPropertyAccessExpression(
+      briskRuntimeIdenfiy,
+      context.factory.createIdentifier('typeCast'),
+    ),
+    undefined,
+    [
+      context.factory.createIdentifier(sourceLetName),
+      context.factory.createStringLiteral(targetTypeName),
+    ],
+  );
+}
+
+function visitEnum(node: ts.EnumDeclaration, program: ts.Program, context: ts.TransformationContext): ts.Node | ts.Node[] | undefined {
+  const enumName = node.name.getText();
+  const enumNode = createTypeAppendNode(
+    context,
+    enumName,
+    [],
+    [],
+    [],
+    undefined,
+    undefined,
+    node.members.reduce((pre, current) => {
+      if (current.initializer) {
+        pre.push(current.initializer.getText().replace(/['"]/ug, ''));
+      } else if (pre.length === 0) {
+        pre.push('0');
+      } else {
+        const preNum = Number(pre[pre.length - 1]);
+        if (!Number.isNaN(preNum)) {
+          pre.push(String(preNum + 1));
+        }
+      }
+      return pre;
+    }, [] as Array<string>),
+  );
+  __brisk = true;
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return [enumNode, ts.visitEachChild(node, (child) => visitNode(child, program, context), context)];
+}
+
 function visitNode(node: ts.Node, program: ts.Program, context: ts.TransformationContext): ts.Node | ts.Node[] | undefined {
   if (ts.isInterfaceDeclaration(node)) {
     return visitInterface(node, program, context);
   }
   if (ts.isClassDeclaration(node)) {
     return visitClass(node, program, context);
+  }
+  if (ts.isEnumDeclaration(node)) {
+    return visitEnum(node, program, context);
   }
   // isLike转换
   if (ts.isCallExpression(node)
@@ -450,6 +531,15 @@ function visitNode(node: ts.Node, program: ts.Program, context: ts.Transformatio
     && node.typeArguments?.[0]?.kind === ts.SyntaxKind.TypeReference
   ) {
     return transIsLike(node, program, context);
+  }
+  // typeCast转换
+  if (ts.isCallExpression(node)
+    && node.expression.getText() === 'typeCast'
+    && node.arguments.length === 1
+    && node.typeArguments?.length === 1
+    && node.typeArguments?.[0]?.kind === ts.SyntaxKind.TypeReference
+  ) {
+    return transTypeCast(node, program, context);
   }
   return ts.visitEachChild(node, (child) => visitNode(child, program, context), context);
 }

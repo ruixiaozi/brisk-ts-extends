@@ -55,6 +55,8 @@ describe('transformer', () => {
         b: boolean;
         bb: () => void;
         bbb: Function;
+        bbbb: Array<string>;
+        bbbbb: string[];
       }
       export interface SubInterface extends SuperInterface {
         a: string;
@@ -67,6 +69,7 @@ describe('transformer', () => {
         cTest(): void;
       }
     `, tsconfig);
+    console.log(res);
     expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
     expect(res.outputText).toContain('__brisk_ts_extends_runtime__.append("SuperInterface", {\r\n' +
     '    properties: [\r\n' +
@@ -83,6 +86,16 @@ describe('transformer', () => {
     '        {\r\n' +
     '            key: "bbb",\r\n' +
     '            type: "function",\r\n' +
+    '            option: false\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
+    '            option: false\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
     '            option: false\r\n' +
     '        }\r\n' +
     '    ],\r\n' +
@@ -190,6 +203,9 @@ describe('transformer', () => {
 
         aaaa?: string | number | undefined;
 
+        bbbb?: Array<string>;
+        bbbbb?: string[];
+
         aTest(param: number): string {
           throw new Error("Method not implemented.");
         }
@@ -205,6 +221,7 @@ describe('transformer', () => {
         b: string = '123';
       }
     `, tsconfig);
+    console.log(res);
     expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
     expect(res.outputText).toContain('__brisk_ts_extends_runtime__.append("SuperClass", {\r\n' +
     '    properties: [\r\n' +
@@ -268,6 +285,16 @@ describe('transformer', () => {
     '            option: true\r\n' +
     '        },\r\n' +
     '        {\r\n' +
+    '            key: "bbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
+    '            option: true\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
+    '            key: "bbbbb",\r\n' +
+    '            type: "Array:string",\r\n' +
+    '            option: true\r\n' +
+    '        },\r\n' +
+    '        {\r\n' +
     '            key: "b",\r\n' +
     '            type: "string",\r\n' +
     '            option: false,\r\n' +
@@ -322,6 +349,36 @@ describe('transformer', () => {
       }
     `, tsconfig);
     expect(res.outputText).not.toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
+  })
+
+  // transformer，应该转换为一个typeCast具有2个参数的方法调用，当ts中有一个typeCast调用，并且只有一个参数和一个泛型，并且泛型为类型引用
+  test('transformer Should transform to has two params typeCast call When typeCast has one param and one type declare', () => {
+    const res = ts.transpileModule(`
+      typeCast<SuperInterface>(superInterfaceInstance)
+    `, tsconfig);
+    expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
+    expect(res.outputText).toContain('__brisk_ts_extends_runtime__.typeCast(superInterfaceInstance, "SuperInterface");',)
+  })
+
+
+  // transformer，应该转换enum枚举
+  test('transformer Should transform enum', () => {
+    const res = ts.transpileModule(`
+      enum TEST_ENUM {
+        ENUM1,
+        ENUM2='enum2',
+        ENUM3=2,
+        ENUM4,
+        ENUM5='enum5',
+      }
+    `, tsconfig);
+    expect(res.outputText).toContain('const __brisk_ts_extends_runtime__ = __importStar(require("brisk-ts-extends/runtime"));');
+    expect(res.outputText).toContain('__brisk_ts_extends_runtime__.append("TEST_ENUM", {\r\n' +
+    '    properties: [],\r\n' +
+    '    functions: [],\r\n' +
+    '    parents: [],\r\n' +
+    `    enums: ["0", "enum2", "2", "3", "enum5"]\r\n` +
+    '});\r\n')
   })
 
 })
