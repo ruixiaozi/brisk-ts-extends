@@ -1,6 +1,6 @@
 {
   "name": "brisk-ts-extends",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "brisk typescript extends",
   "main": "index.js",
   "types": "index.d.ts",
