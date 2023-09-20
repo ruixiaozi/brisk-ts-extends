@@ -1,7 +1,14 @@
 import { TypeDes, TypeKind } from '../types';
 
 // 保存运行时类型
-const runtimeTypes: { [key: string]: TypeDes } = {};
+const globalVal: {
+  __briskRuntimeTypes?: { [key: string]: TypeDes },
+  [key: string | symbol | number]: any,
+} = globalThis;
+
+if (!globalVal.__briskRuntimeTypes) {
+  globalVal.__briskRuntimeTypes = {};
+}
 
 /**
  * 判断值的类型是否与类型字符串一直
@@ -36,10 +43,10 @@ function equalType(type: TypeKind, value: any): boolean {
  */
 export function append(typeName: string, typeDes: TypeDes) {
   // 如果类型定义已经存在（同名），给出警告
-  if (runtimeTypes[typeName]) {
+  if (globalVal.__briskRuntimeTypes![typeName]) {
     console.warn(`${typeName} is exist!`);
   }
-  runtimeTypes[typeName] = typeDes;
+  globalVal.__briskRuntimeTypes![typeName] = typeDes;
 }
 
 /**
@@ -48,7 +55,7 @@ export function append(typeName: string, typeDes: TypeDes) {
  * @returns
  */
 export function get(typeName: string) {
-  return runtimeTypes[typeName];
+  return globalVal.__briskRuntimeTypes![typeName];
 }
 
 /**
@@ -108,14 +115,14 @@ export function typeCast<T>(sources: any[], targetTypeName: string): T
 export function typeCast<T>(source: any | any[], targetTypeName?: string): T {
   const res: any = {};
   // 没找到对应的类型定义v
-  if (!targetTypeName || !runtimeTypes[targetTypeName] || typeof source !== 'object') {
+  if (!targetTypeName || !globalVal.__briskRuntimeTypes![targetTypeName] || typeof source !== 'object') {
     return res;
   }
 
   const sourceArr = Array.isArray(source) ? source : [source];
 
   // 将类型里有的字段转换过去，如果source为数组，则后续相同字段将覆盖前面的，没有的字段留空
-  for (let prop of runtimeTypes[targetTypeName].properties) {
+  for (let prop of globalVal.__briskRuntimeTypes![targetTypeName].properties) {
     for (let sourceObj of sourceArr) {
       if (sourceObj[prop.key] === undefined) {
         continue;
@@ -157,13 +164,15 @@ export function isLike<T>(target: any): target is T;
 export function isLike<T>(target: any, typeName?: string): target is T {
   const targetTypeof = typeof target;
   // 没找到对应的类型定义，或者不是对象、字符串和数字
-  if (!typeName || !runtimeTypes[typeName] || (targetTypeof !== 'object' && targetTypeof !== 'string' && targetTypeof !== 'number')) {
+  if (!typeName
+    || !globalVal.__briskRuntimeTypes![typeName]
+    || (targetTypeof !== 'object' && targetTypeof !== 'string' && targetTypeof !== 'number')) {
     return false;
   }
 
   // 枚举类型
   if (targetTypeof === 'string' || targetTypeof === 'number') {
-    const { enums } = runtimeTypes[typeName];
+    const { enums } = globalVal.__briskRuntimeTypes![typeName];
     // 如果没有枚举定义，则返回失败
     if (!enums) {
       return false;
@@ -173,7 +182,7 @@ export function isLike<T>(target: any, typeName?: string): target is T {
   }
 
   // 只检查类型里面约定了，额外的属性不用比较
-  for (let prop of runtimeTypes[typeName].properties) {
+  for (let prop of globalVal.__briskRuntimeTypes![typeName].properties) {
     // 可选属性，并且值为undefined，跳过
     if (prop.option && typeof target[prop.key] === 'undefined') {
       continue;
@@ -199,7 +208,9 @@ export function isLike<T>(target: any, typeName?: string): target is T {
     }
   }
 
-  const typeParents = runtimeTypes[typeName].parents;
+  // 过滤掉一些内置类型
+  const typeParents = globalVal.__briskRuntimeTypes![typeName].parents
+    ?.filter((item) => !['Error', 'Date', 'Array'].includes(item));
 
   if (typeParents) {
     for (let parent of typeParents) {
