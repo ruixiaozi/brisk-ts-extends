@@ -49,14 +49,6 @@ export function append(typeName: string, typeDes: TypeDes) {
   globalVal.__briskRuntimeTypes![typeName] = typeDes;
 }
 
-/**
- * 获取类型定义
- * @param typeName 类型名称
- * @returns
- */
-export function get(typeName: string) {
-  return globalVal.__briskRuntimeTypes![typeName];
-}
 
 /**
  * 获取父类型（用于泛型定义）
@@ -68,7 +60,7 @@ export function getParentTypeKind(kind: TypeKind | TypeKind[]) {
   if (Array.isArray(kind)) {
     return kind;
   }
-  const inx = kind.indexOf(':');
+  const inx = kind.indexOf('.');
   return inx === -1 ? kind : kind.substring(0, inx);
 }
 
@@ -82,8 +74,49 @@ export function getSubTypeKind(kind: TypeKind | TypeKind[]) {
   if (Array.isArray(kind)) {
     return kind;
   }
-  const inx = kind.indexOf(':');
+  const inx = kind.indexOf('.');
   return inx === -1 ? kind : kind.substring(inx + 1);
+}
+
+/**
+ * 获取类型定义
+ * @param typeName 类型名称
+ * @returns
+ */
+export function get(typeName: string) {
+  const parentType = getParentTypeKind(typeName) as string;
+  const subType = getSubTypeKind(typeName) as string;
+  // 非泛型
+  if (parentType === subType) {
+    return globalVal.__briskRuntimeTypes![typeName];
+  }
+
+  // 泛型
+
+  // 非内置泛型
+  if (!['Partial', 'Required'].includes(parentType)) {
+    // 其他泛型直接返回带泛型的描述，可能未定义，todo
+    return globalVal.__briskRuntimeTypes![typeName];
+  }
+
+  const subTypeDes = globalVal.__briskRuntimeTypes![subType];
+  // 子类型不存在，直接返回undefined
+  if (!subTypeDes) {
+    return undefined;
+  }
+
+  // 可选与必选
+  if (['Partial', 'Required'].includes(parentType)) {
+    return {
+      ...subTypeDes,
+      properties: subTypeDes.properties.map((item) => ({
+        ...item,
+        option: parentType === 'Partial',
+      })),
+    };
+  }
+
+  return undefined;
 }
 
 
@@ -153,6 +186,7 @@ export function typeCast<T>(source: any | any[], targetTypeName?: string): T {
  * 根据实际对象和对象名称，判断类型
  * @param target 实际对象
  * @param typeName 类型名称
+ * @param allOption 所有属性可选，默认false
  */
 export function isLike<T>(target: any, typeName: string): target is T;
 
@@ -161,18 +195,18 @@ export function isLike<T>(target: any, typeName: string): target is T;
  * @param target 实际对象
  */
 export function isLike<T>(target: any): target is T;
+// eslint-disable-next-line complexity
 export function isLike<T>(target: any, typeName?: string): target is T {
   const targetTypeof = typeof target;
-  // 没找到对应的类型定义，或者不是对象、字符串和数字
+  // 不是对象、字符串和数字
   if (!typeName
-    || !globalVal.__briskRuntimeTypes![typeName]
     || (targetTypeof !== 'object' && targetTypeof !== 'string' && targetTypeof !== 'number')) {
     return false;
   }
 
   // 枚举类型
   if (targetTypeof === 'string' || targetTypeof === 'number') {
-    const { enums } = globalVal.__briskRuntimeTypes![typeName];
+    const { enums } = get(typeName) || {};
     // 如果没有枚举定义，则返回失败
     if (!enums) {
       return false;
@@ -181,8 +215,15 @@ export function isLike<T>(target: any, typeName?: string): target is T {
     return enums.includes(String(target));
   }
 
+  const typeDes = get(typeName);
+
+  // 没有实际类型
+  if (!typeDes) {
+    return false;
+  }
+
   // 只检查类型里面约定了，额外的属性不用比较
-  for (let prop of globalVal.__briskRuntimeTypes![typeName].properties) {
+  for (let prop of typeDes.properties) {
     // 可选属性，并且值为undefined，跳过
     if (prop.option && typeof target[prop.key] === 'undefined') {
       continue;
@@ -208,9 +249,9 @@ export function isLike<T>(target: any, typeName?: string): target is T {
     }
   }
 
-  // 过滤掉一些内置类型
-  const typeParents = globalVal.__briskRuntimeTypes![typeName].parents
-    ?.filter((item) => !['Error', 'Date', 'Array'].includes(item));
+  // 过滤掉一些可继承的内置类型，如果当前类型继承自这些类型，则不用再检查这些内置
+  const typeParents = typeDes.parents
+    ?.filter((item) => !['Error', 'Array'].includes(item));
 
   if (typeParents) {
     for (let parent of typeParents) {

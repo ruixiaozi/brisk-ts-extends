@@ -15,7 +15,8 @@ module.exports = {
       'extends': ['eslint-config-brisk/tslint'],
       'rules': {
         "no-redeclare": "off",
-        "@typescript-eslint/no-redeclare": "warn"
+        "@typescript-eslint/no-redeclare": "warn",
+        'no-warning-comments': 'warn'
       }
     },
     {

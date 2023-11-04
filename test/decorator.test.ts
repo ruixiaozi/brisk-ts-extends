@@ -101,7 +101,7 @@ describe('decorator', () => {
     }
 
     const test3Des = get('Test3');
-    expect(test3Des.functions?.[0]?.params?.[0]?.meta?.required).toEqual(true);
+    expect(test3Des?.functions?.[0]?.params?.[0]?.meta?.required).toEqual(true);
   })
 
   // DecoratorFactory.getDecorator方法应该返回一个方法装饰器，当调用DecoratorFactory.setMethodCallback后

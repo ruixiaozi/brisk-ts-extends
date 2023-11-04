@@ -230,7 +230,7 @@ describe('runtime', () => {
       properties: [
         {
           key: "a",
-          type: "Promise:Test",
+          type: "Promise.Test",
           option: false
         },
       ],
@@ -238,7 +238,7 @@ describe('runtime', () => {
       parents: []
     });
     const test11Type = get('Test11');
-    expect(getSubTypeKind(test11Type.properties[0].type)).toBe('Test');
+    expect(getSubTypeKind(test11Type!.properties[0].type)).toBe('Test');
   })
 
   // isLike方法当类型为数组类型时，且实际类型满足，应该返回true
@@ -265,7 +265,7 @@ describe('runtime', () => {
       properties: [
         {
           key: "a",
-          type: "Promise:Test",
+          type: "Promise.Test",
           option: false
         },
       ],
@@ -273,7 +273,7 @@ describe('runtime', () => {
       parents: []
     });
     const test11Type = get('Test13');
-    expect(getParentTypeKind(test11Type.properties[0].type)).toBe('Promise');
+    expect(getParentTypeKind(test11Type!.properties[0].type)).toBe('Promise');
   })
 
   test('isLike Should check enum type', () => {

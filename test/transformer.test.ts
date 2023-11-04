@@ -90,12 +90,12 @@ describe('transformer', () => {
     '        },\r\n' +
     '        {\r\n' +
     '            key: "bbbb",\r\n' +
-    '            type: "Array:string",\r\n' +
+    '            type: "Array.string",\r\n' +
     '            option: false\r\n' +
     '        },\r\n' +
     '        {\r\n' +
     '            key: "bbbbb",\r\n' +
-    '            type: "Array:string",\r\n' +
+    '            type: "Array.string",\r\n' +
     '            option: false\r\n' +
     '        }\r\n' +
     '    ],\r\n' +
@@ -286,12 +286,12 @@ describe('transformer', () => {
     '        },\r\n' +
     '        {\r\n' +
     '            key: "bbbb",\r\n' +
-    '            type: "Array:string",\r\n' +
+    '            type: "Array.string",\r\n' +
     '            option: true\r\n' +
     '        },\r\n' +
     '        {\r\n' +
     '            key: "bbbbb",\r\n' +
-    '            type: "Array:string",\r\n' +
+    '            type: "Array.string",\r\n' +
     '            option: true\r\n' +
     '        },\r\n' +
     '        {\r\n' +
